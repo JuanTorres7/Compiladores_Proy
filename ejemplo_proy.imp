@@ -1,0 +1,29 @@
+var bool a,b;
+var int x,y;
+x = 4;
+y = 10;
+a = x < 10;
+
+// Comentario 1
+print(x+y);
+
+if a then
+    do
+        x=x+2;
+        print(x)
+    while x<10
+else
+    print(y*x) // Imprimimos x*y cuando la condicion de x < 10 se incumple
+endif
+
+/*
+y = 0;
+while 0 < x do
+  var int z;
+  y = y+x;
+  x = x-1;
+  z=0
+endwhile;
+
+print(x+y)
+*/
