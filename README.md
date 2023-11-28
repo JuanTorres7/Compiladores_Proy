@@ -22,38 +22,32 @@ public:
 - Modificar el Scanner para poder detectar el simbolo "//" (tomando como base el simbolo "/" de división)
 
 ```c++
+else if (strchr("()+-*/;=<,!:", c)) {
+  switch(c) {
   ...
-  else if (strchr("()+-*/;=<,!:", c)) {
-    switch(c) {
-    ...
-    case '*': 
-      c = nextChar();
-      if (c == '*') token = new Token(Token::EXP);
-      else { rollBack(); token = new Token(Token::MULT); }
-      break; 
-    /* Modify - Comment (T1) */
-    case '/':
-      c = nextChar();
-      if (c == '/') {
-        while (c != '\n' && c != '\0') c = nextChar();
-        rollBack();
-        token = new Token(Token::COMMENT);
-      }
-      else if (c == '*') { // New AddOn: Comentario de varias lineas
-        bool flag = false;
-        while (!flag && c != '\0') {
-          c = nextChar();
-            if (c == '*') {
-              c = nextChar();
-              if (c == '/') flag = true;
-              else rollBack();
-            }
+  /* Modify - Comment (T1) */
+  case '/':
+    c = nextChar();
+    if (c == '/') {
+      while (c != '\n' && c != '\0') c = nextChar();
+      rollBack();
+      token = new Token(Token::COMMENT);
+    }
+    else if (c == '*') { // New AddOn: Comentario de varias lineas
+      bool flag = false;
+      while (!flag && c != '\0') {
+        c = nextChar();
+          if (c == '*') {
+            c = nextChar();
+            if (c == '/') flag = true;
+            else rollBack();
+          }
         }
         token = new Token(Token::COMMENT);
-      }
-      else { token = new Token(Token::DIV); }
-      break;
-    /* ----- */
+    }
+    else { token = new Token(Token::DIV); }
+    break;
+  /* ----- */
   ...
 ```
 
@@ -75,7 +69,47 @@ StatementList* Parser::parseStatementList() {
 
 ## 2. Generación de código
 
+### 2.1. Constantes booleanas
 
+```c++
+int ImpCodeGen::visit(BoolConstExp* e) {
+  /* Modify - Codegen (T2) */
+  if (e->b == true) codegen(nolabel, "push", 1);
+  else codegen(nolabel, "push", 2);
+  /* ----- */
+  return 0;
+}
+```
+
+### 2.2. Operadores And / Or
+
+```c++
+int ImpCodeGen::visit(BinaryExp* e) {
+  e->left->accept(this);
+  e->right->accept(this);
+  string op = "";
+  switch(e->op) {
+  case PLUS: op =  "add"; break;
+  case MINUS: op = "sub"; break;
+  case MULT:  op = "mul"; break;
+  case DIV:  op = "div"; break;
+  case LT:  op = "lt"; break;
+  case LTEQ: op = "le"; break;
+  case EQ:  op = "eq"; break;
+  /* Add - Codegen (T2) */
+  case AND: op = "and"; break;
+  case OR: op = "or"; break;
+  /* ----- */
+  default: cout << "binop " << Exp::binopToString(e->op) << " not implemented" << endl;
+  }
+  codegen(nolabel, op);
+  return 0;
+}
+```
+
+### 2.3. For Statement
+
+### 2.4. Do While Statement
 
 ## 3. Sentencia do-while
 - Modificamos agregando las nuevas funciones para la nueva sentencia DoWhile en todas las clases necesarias.
@@ -86,14 +120,14 @@ public:
   virtual void visit(DoWhileStatement* e) = 0; // Add - DoWhile (T3)
   ...
 };
-
+/* ----- */
 class ImpVisitor {
 public:
   ...
   virtual int visit(DoWhileStatement* e) = 0; /* Add - DoWhile (T3) */
   ...
 };
-
+/* ----- */
 class ImpTypeChecker : public TypeVisitor {
 public:
   ImpTypeChecker();
@@ -107,14 +141,14 @@ public:
   void visit(DoWhileStatement*);
   ...
 };
-
+/* ----- */
 class ImpPrinter : public ImpVisitor {
 public:
   ...
   int visit(DoWhileStatement*); /* Add - DoWhile (T3) */
   ...
 };
-
+/* ----- */
 class ImpInterpreter : public ImpVisitor {
 private:
   Environment<int> env;
@@ -151,11 +185,6 @@ Stm* Parser::parseStatement() {
     s = new DoWhileStatement(e, tb);
   }
   ...
-  else {
-    cout << "No se encontro Statement" << endl;
-    exit(0);
-  }
-  return s;
 }
 ```
 
@@ -184,7 +213,7 @@ int ImpPrinter::visit(DoWhileStatement* s) {
 
 ## 4. Sentencia break y continue
 
-## 5. Compilado y prueba de programa
+## 5. Final - Compilado y prueba de programa
 
 - Con la finalidad de probar las implementaciones de comentario y nueva sentencia DoWhile, ejecutamos lo siguiente:
 

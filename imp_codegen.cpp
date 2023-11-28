@@ -132,6 +132,11 @@ int ImpCodeGen::visit(ForStatement* s) {
 }
 
 int ImpCodeGen::visit(DoWhileStatement* s) {
+  /* Modify - Codegen (T2) */
+  string l1 = next_label();
+  string l2 = next_label();
+  
+  /* ----- */
   return 0;
 }
 
