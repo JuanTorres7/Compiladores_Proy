@@ -123,11 +123,32 @@ int ImpCodeGen::visit(WhileStatement* s) {
 }
 
 int ImpCodeGen::visit(ForStatement* s) {
-  /* Modify - Codegen (T2) */
-  string l1_start = next_label();
-  string l2_start = next_label();
+   /* Modify - Codegen (T2) */
+  string l1 = next_label();
+  string l2 = next_label();
+  int set_addr = siguiente_direccion;
+  direcciones.add_level();
+  direcciones.add_var(s->id, siguiente_direccion++);
+  s->e1->accept(this);
+  codegen(nolabel, "store", direcciones.lookup(s->id));
+  s->e2->accept(this);
 
-  /* ----- */
+  int i = direcciones.lookup(s->id);
+  codegen(l1, "skip");
+  codegen(nolabel, "dup");
+  codegen(nolabel, "load, i");
+  codegen(nolabel,"ge");
+  codegen(nolabel,"jmpz",l2);
+  s->body->accept(this);
+  codegen(nolabel,"load",i);
+  codegen(nolabel,"push",1);
+  codegen(nolabel,"add");
+  codegen(nolabel,"store",i);
+  codegen(nolabel,"goto",l1);
+  codegen(l2,"skip");
+  codegen(nolabel,"pop");
+  direcciones.remove_level();
+  siguiente_direccion=set_addr;
   return 0;
 }
 
@@ -135,8 +156,13 @@ int ImpCodeGen::visit(DoWhileStatement* s) {
   /* Modify - Codegen (T2) */
   string l1 = next_label();
   string l2 = next_label();
-  
-  /* ----- */
+  string l3 = next_label();
+  codegen(l1,"skip");
+  s->body->accept(this);
+  codegen(l3,"skip");
+  s->cond->accept(this);
+  codegen(nolabel,"jmpn",l1);
+  codegen(l2,"skip");
   return 0;
 }
 
